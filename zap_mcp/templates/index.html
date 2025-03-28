@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAP-MCP Server</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4">ZAP-MCP Server</h1>
+            <p class="text-xl text-gray-300">Model Context Protocol Server for OWASP ZAP Integration</p>
+            <div class="mt-4">
+                <span class="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm">
+                    Version {{ version }}
+                </span>
+                <span class="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm ml-2">
+                    Status: {{ status }}
+                </span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <a href="/docs" class="card-hover bg-white bg-opacity-10 rounded-lg p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-2">API Documentation</h2>
+                <p class="text-gray-300">Interactive Swagger UI documentation for all API endpoints</p>
+            </a>
+
+            <a href="/redoc" class="card-hover bg-white bg-opacity-10 rounded-lg p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-2">API Reference</h2>
+                <p class="text-gray-300">Detailed ReDoc documentation for API endpoints</p>
+            </a>
+
+            <a href="/health" class="card-hover bg-white bg-opacity-10 rounded-lg p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-2">Health Check</h2>
+                <p class="text-gray-300">Monitor server health and status</p>
+            </a>
+
+            <a href="/events" class="card-hover bg-white bg-opacity-10 rounded-lg p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-2">Real-time Events</h2>
+                <p class="text-gray-300">Server-Sent Events for live updates</p>
+            </a>
+
+            <a href="/api/v1" class="card-hover bg-white bg-opacity-10 rounded-lg p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-2">API Endpoints</h2>
+                <p class="text-gray-300">Access the main API endpoints</p>
+            </a>
+        </div>
+
+        <footer class="mt-12 text-center text-gray-400">
+            <p>Powered by FastAPI and OWASP ZAP</p>
+        </footer>
+    </div>
+</body>
+</html> 
