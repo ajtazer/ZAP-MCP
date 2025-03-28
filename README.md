@@ -1,167 +1,114 @@
 # ZAP-MCP: Model Context Protocol for OWASP ZAP
 
-A FastAPI-based server that provides a Model Context Protocol (MCP) interface for OWASP ZAP, enabling AI-driven security testing and analysis.
+A powerful integration between OWASP ZAP and AI models through the Model Context Protocol (MCP). This project enables AI-driven security testing by allowing AI models to directly interact with ZAP's scanning capabilities.
 
-## Project Structure
+## Overview
 
-```
-ZAP-MCP/
-├── zap_mcp/                    # Main package directory
-│   ├── api/                    # API routes and endpoints
-│   │   └── routes.py          # API route definitions and handlers
-│   ├── core/                   # Core functionality
-│   │   ├── auth.py            # Authentication and authorization
-│   │   ├── config.py          # Configuration management
-│   │   └── mcp.py             # MCP protocol implementation
-│   ├── models/                 # Data models
-│   │   └── mcp.py             # Pydantic models for MCP messages
-│   ├── services/              # External service integrations
-│   │   └── zap_service.py     # OWASP ZAP service integration
-│   ├── templates/             # HTML templates
-│   │   └── index.html         # Main dashboard template
-│   └── utils/                 # Utility functions
-├── claude_integration.py      # Claude AI integration script
-├── run.py                     # Application entry point
-├── requirements.txt           # Python dependencies
-├── .env                       # Environment variables
-├── .env.example              # Example environment variables
-└── zap_root_ca.cer           # ZAP root certificate
-```
+ZAP-MCP provides a bridge between AI models (like Claude) and OWASP ZAP, enabling automated security testing and analysis. It uses a client-server architecture where ZAP-MCP acts as the server, exposing standardized functions that can be called by AI models through the MCP protocol.
 
 ## Features
 
-- FastAPI-based REST API
-- OAuth2 authentication
-- Real-time scan status updates via SSE
-- HTML dashboard
-- Claude AI integration for scan analysis
-- Support for multiple scan types (active, passive, AJAX)
-- Configurable scan parameters
-- Multiple report formats (HTML, JSON, XML, Markdown)
+- **AI-Driven Security Testing**: Enable AI models to perform security scans and analysis
+- **Real-time Scan Monitoring**: Track scan progress and get instant alerts
+- **Automated Analysis**: Generate security reports and recommendations
+- **Flexible Integration**: Works with various AI models through the MCP protocol
+- **WebSocket Communication**: Real-time updates and interactions
 
 ## Prerequisites
 
 - Python 3.8+
-- OWASP ZAP installed and running
-- pip (Python package manager)
+- OWASP ZAP running locally or remotely
+- Claude Desktop App (or other MCP-compatible client)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/zap-mcp.git
-cd zap-mcp
+git clone https://github.com/tazer/ZAP-MCP.git
+cd ZAP-MCP
 ```
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Copy the example environment file and configure it:
+3. Set up the MCP server:
 ```bash
-cp .env.example .env
+./setup_mcp.sh
 ```
 
-5. Edit `.env` with your configuration:
-```env
-# Server settings
-HOST=0.0.0.0
-PORT=8000
-DEBUG=false
+4. Configure ZAP-MCP:
+   - Copy `claude_desktop_config.json` to your Claude app's config directory
+   - Update the ZAP API key and URL in the config file
 
-# ZAP settings
-ZAP_API_URL=http://127.0.0.1:8080
-ZAP_API_KEY=your_zap_api_key
+## Usage
 
-# Security settings
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# MCP settings
-MCP_VERSION=1.0
-MAX_CONCURRENT_SCANS=5
-SCAN_TIMEOUT=3600
-
-# Report settings
-REPORT_DIR=reports
-DEFAULT_REPORT_FORMAT=html
-
-# Logging settings
-LOG_LEVEL=INFO
-LOG_FILE=zap_mcp.log
-```
-
-## Running the Server
-
-1. Start OWASP ZAP:
+1. Start the MCP server:
 ```bash
-# Start ZAP in daemon mode
-zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.disablekey=true
+mcp-server --config claude_desktop_config.json --model-dir ./models
 ```
 
-2. Start the MCP server:
-```bash
-python run.py
+2. Configure your Claude desktop app:
+   - Open Claude app settings
+   - Enable MCP server integration
+   - Set the WebSocket URL to: `ws://localhost:7456/ws`
+
+3. Start using ZAP-MCP:
+   - The Claude app will now have access to ZAP scanning tools
+   - You can request security scans, get alerts, and generate reports
+
+## Available Tools
+
+The MCP server exposes these ZAP-specific tools:
+
+- `start_scan`: Start a new ZAP scan on a target URL
+- `get_scan_status`: Check the status of a running scan
+- `get_alerts`: Get all alerts from the current scan
+- `get_scan_summary`: Get a summary of the current scan
+
+## Configuration
+
+The `claude_desktop_config.json` file contains all necessary settings:
+
+```json
+{
+    "mcp_server": {
+        "host": "localhost",
+        "port": 7456,
+        "model": "claude-instant-v1",
+        "max_tokens": 1000,
+        "temperature": 0.7,
+        "zap_api_key": "your-zap-api-key",
+        "zap_url": "http://localhost:8080"
+    },
+    "local_models": {
+        "path": "./models",
+        "prefer_local": true
+    },
+    "zap_settings": {
+        "scan_timeout": 300,
+        "max_concurrent_scans": 5,
+        "alert_threshold": "HIGH",
+        "scan_policy": "default"
+    }
+}
 ```
 
-3. Access the dashboard:
-- Open http://localhost:8000 in your browser
-- Use the default credentials (test/test) to log in
+## Development
 
-## Using the Claude Integration
+This project was developed using Cursor AI, an intelligent coding assistant that helped streamline the development process and ensure code quality.
 
-1. Make sure both ZAP and the MCP server are running
+## Author
 
-2. Run the Claude integration script:
-```bash
-python claude_integration.py
-```
-
-3. Enter the target URL when prompted
-
-4. The script will:
-   - Start a security scan
-   - Monitor scan progress
-   - Generate results and report
-   - Create a prompt for Claude analysis
-
-5. Copy the generated prompt and paste it into Claude Desktop
-
-## API Endpoints
-
-- `GET /`: HTML dashboard
-- `GET /health`: Health check endpoint
-- `GET /events`: SSE endpoint for real-time updates
-- `POST /api/v1/token`: Get authentication token
-- `POST /api/v1/scan/start`: Start a new scan
-- `GET /api/v1/scan/{scan_id}/status`: Get scan status
-- `GET /api/v1/scan/{scan_id}/results`: Get scan results
-- `POST /api/v1/reports/generate`: Generate a report
-
-## Security Considerations
-
-- Always use HTTPS in production
-- Keep your ZAP API key secure
-- Use strong passwords and tokens
-- Regularly update dependencies
-- Monitor server logs for suspicious activity
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+- **TAZER** - Initial work and maintenance
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- OWASP ZAP team for their excellent security testing tool
+- Anthropic for Claude AI
+- Cursor AI for their assistance in development 

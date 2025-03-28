@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP (Model Context Protocol) server for Claude desktop app integration.
+MCP (Model Context Protocol) server for ZAP-MCP integration.
 """
 
 import argparse
@@ -9,9 +9,10 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
+from zapv2 import ZAPv2
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +27,50 @@ class MCPConfig(BaseModel):
     model: str = "claude-instant-v1"
     max_tokens: int = 1000
     temperature: float = 0.7
+    zap_api_key: Optional[str] = None
+    zap_url: str = "http://localhost:8080"
+
+class ZAPTools:
+    def __init__(self, config: MCPConfig):
+        self.config = config
+        self.zap = ZAPv2(apikey=config.zap_api_key, proxies={'http': config.zap_url, 'https': config.zap_url})
+
+    async def start_scan(self, target_url: str) -> Dict[str, Any]:
+        """Start a new ZAP scan."""
+        try:
+            scan_id = self.zap.spider.scan(target_url)
+            return {"status": "success", "scan_id": scan_id}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    async def get_scan_status(self, scan_id: str) -> Dict[str, Any]:
+        """Get the status of a running scan."""
+        try:
+            status = self.zap.spider.status(scan_id)
+            return {"status": "success", "scan_status": status}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    async def get_alerts(self) -> Dict[str, Any]:
+        """Get all alerts from the current scan."""
+        try:
+            alerts = self.zap.core.alerts()
+            return {"status": "success", "alerts": alerts}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    async def get_scan_summary(self) -> Dict[str, Any]:
+        """Get a summary of the current scan."""
+        try:
+            summary = {
+                "hosts": self.zap.core.hosts,
+                "sites": self.zap.core.sites,
+                "urls": self.zap.core.urls,
+                "alerts": self.zap.core.alerts
+            }
+            return {"status": "success", "summary": summary}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
 
 class MCPServer:
     def __init__(self, config_path: str, model_dir: str):
@@ -33,6 +78,7 @@ class MCPServer:
         self.model_dir = model_dir
         self.config = self._load_config()
         self.app = FastAPI()
+        self.zap_tools = ZAPTools(self.config)
         self.setup_routes()
 
     def _load_config(self) -> MCPConfig:
@@ -73,15 +119,22 @@ class MCPServer:
         """Process incoming requests."""
         try:
             request = json.loads(data)
-            prompt = request.get('prompt', '')
-            
-            # TODO: Implement actual model inference here
-            # For now, return a mock response
-            return {
-                "status": "success",
-                "response": f"Processed prompt: {prompt}",
-                "model": self.config.model
-            }
+            action = request.get('action')
+            params = request.get('params', {})
+
+            if action == 'start_scan':
+                return await self.zap_tools.start_scan(params.get('target_url'))
+            elif action == 'get_scan_status':
+                return await self.zap_tools.get_scan_status(params.get('scan_id'))
+            elif action == 'get_alerts':
+                return await self.zap_tools.get_alerts()
+            elif action == 'get_scan_summary':
+                return await self.zap_tools.get_scan_summary()
+            else:
+                return {
+                    "status": "error",
+                    "error": f"Unknown action: {action}"
+                }
         except Exception as e:
             logger.error(f"Error processing request: {e}")
             return {
@@ -105,7 +158,7 @@ class MCPServer:
         await server.serve()
 
 def main():
-    parser = argparse.ArgumentParser(description='MCP Server for Claude Desktop')
+    parser = argparse.ArgumentParser(description='MCP Server for ZAP-MCP')
     parser.add_argument('--config', required=True, help='Path to config file')
     parser.add_argument('--model-dir', required=True, help='Path to model directory')
     args = parser.parse_args()
