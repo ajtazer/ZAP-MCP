@@ -1,0 +1,6 @@
+# Configuration for GitHub Pages
+theme: jekyll-theme-cayman
+title: ZAP-MCP Documentation
+description: Documentation for the ZAP-MCP project
+baseurl: "/ZAP-MCP"
+url: "https://ajtazer.github.io/ZAP-MCP"
