@@ -18,6 +18,15 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - name: Update RubyGems
+        run: |
+          gem update --system
+
+      - name: Install specific versions of ffi and bundler
+        run: |
+          gem install ffi -v 1.17.2
+          gem install bundler -v 2.4.22
+          
       - name: Install Jekyll and Bundler
         run: |
           gem install jekyll bundler
