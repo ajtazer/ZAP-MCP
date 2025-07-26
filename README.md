@@ -2,6 +2,10 @@
 
 A powerful integration between OWASP ZAP and AI models through the Model Context Protocol (MCP). This project enables AI-driven security testing by allowing AI models to directly interact with ZAP's scanning capabilities.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ajtazer/ZAP-MCP&type=Date)](https://www.star-history.com/#ajtazer/ZAP-MCP&Date)
+
 ## Overview
 
 ZAP-MCP provides a bridge between AI models (like Claude) and OWASP ZAP, enabling automated security testing and analysis. It uses a client-server architecture where ZAP-MCP acts as the server, exposing standardized functions that can be called by AI models through the MCP protocol.
